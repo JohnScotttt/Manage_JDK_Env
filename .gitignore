@@ -2,3 +2,5 @@
 env.yml
 test.py
 core.spec
+build
+dist
