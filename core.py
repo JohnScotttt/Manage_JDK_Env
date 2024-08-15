@@ -8,6 +8,7 @@ import os
 import sys
 import argparse
 import winreg
+import subprocess
 
 version = '1.0'
 build_t = '2024-8-15'
@@ -15,16 +16,23 @@ build_t = '2024-8-15'
 if not os.path.exists('env.yml'):
     with open('env.yml', 'w') as f:
         yaml.dump({}, f)
-java_env_dict = yaml.load(open('env.yml'), Loader=yaml.FullLoader)
+try:
+    java_env_dict = yaml.load(open('env.yml'), Loader=yaml.FullLoader)
+except Exception:
+    print('Failed to load "env.yml". Try to delete it and run the program again.')
+    sys.exit(0)
 Env = winreg.CreateKey(winreg.HKEY_CURRENT_USER, r'Environment')
 Path = winreg.QueryValueEx(Env, 'Path')[0]
 if "%JAVA_HOME%" not in Path:
     Path += ';%JAVA_HOME%'
     winreg.SetValueEx(Env, 'Path', 0, winreg.REG_EXPAND_SZ, Path)
-    winreg.CloseKey(Env)
+winreg.CloseKey(Env)
 
 
 def list_env():
+    if not java_env_dict:
+        print('No Java environment found.')
+        sys.exit(0)
     max_key_len = max(8, max(len(key) for key in java_env_dict.keys()))
     max_value_len = max(8, max(len(value) for value in java_env_dict.values()))
     print(f'{"Env_Name":<{max_key_len}} | {"Env_Path":<{max_value_len}}')
@@ -56,15 +64,20 @@ def remove_env(env_name):
         print(f'Name {env_name} does not exist.')
 
 
-def use_env(env_name):
+def enable_env(env_name):
     if env_name in java_env_dict.keys():
-        os.system(f'setx JAVA_HOME "{java_env_dict[env_name]}\\bin"')
+        prosess = subprocess.Popen(f'setx JAVA_HOME "{java_env_dict[env_name]}\\bin"',
+                                   shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        prosess
         print(f'Java environment {env_name} enabled successfully.')
     else:
         print(f'Name {env_name} does not exist.')
 
-def unuse_env():
-    os.system('setx JAVA_HOME ""')
+
+def disable_env():
+    prosess = subprocess.Popen('setx JAVA_HOME ""',
+                               shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    prosess
     print('Java environment is now disabled.')
 
 
@@ -88,11 +101,11 @@ if __name__ == '__main__':
                           type=str,
                           metavar='Env_Name',
                           help='Remove a Java environment')
-        args.add_argument('--enable',
+        args.add_argument('-e', '--enable',
                           type=str,
                           metavar='Env_Name',
                           help='Enable a Java environment')
-        args.add_argument('--disable',
+        args.add_argument('-d', '--disable',
                           action='store_true',
                           help='Disable Java environment')
         args.add_argument('-v', '--version',
@@ -118,12 +131,12 @@ if __name__ == '__main__':
         env_name = args.remove
         remove_env(env_name)
 
-    if args.use:
-        env_name = args.use
-        use_env(env_name)
-    
-    if args.unuse:
-        unuse_env()
-    
+    if args.enable:
+        env_name = args.enable
+        enable_env(env_name)
+
+    if args.disable:
+        disable_env()
+
     if args.version:
         print(f'MJE core version {version} {build_t}')
