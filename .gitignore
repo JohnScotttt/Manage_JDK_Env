@@ -2,5 +2,7 @@
 env.yml
 test.py
 core.spec
-build
+build/
 dist
+cmake-build*/
+.idea/
