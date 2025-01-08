@@ -1,6 +1,6 @@
 #
 # Created by JohnScotttt on 2024/8/15.
-# Version 1.0
+# Version 1.0.Py
 #
 
 import yaml
