@@ -1,27 +1,93 @@
 //
-// Created by JohnScotttt.
+// Created by JohnScotttt on 2025/1/9.
 // Version 1.0.CPP
 //
 
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <string>
+#include <algorithm>
 #include <yaml-cpp/yaml.h>
 #include "argparse.hpp"
 
-//void listEnv();
-//void addEnv();
-//void removeEnv();
-//void enableEnv();
-//void disableEnv();
+#define VERSION "1.0.CPP"
 
+void updatePathEnvironmentVariable();
+void listEnv(const YAML::Node& envDict);
+void addEnv(YAML::Node& envDict, const std::string& envName, const std::string& envPath);
+void removeEnv(YAML::Node& envDict, const std::string& envName);
+void enableEnv(const YAML::Node& envDict, const std::string& envName);
+void disableEnv();
 
 int main(int argc, char **argv) {
     ArgParse arg(argc, argv);
-    arg.addArgument("--name",true);
-    arg.addArgument("-a","--age",2);
-    auto args = arg.parseArgs();
-    std::cout << args["name"][0] << std::endl;
-    std::cout << args["age"][0] << args["age"][1] << std::endl;
+    arg.setHelp("Manage JDK environment\n"
+                "Usage: MJE.exe [options]\n"
+                "Options:\n"
+                "  -l, --list\t\tList all Java environments\n"
+                "  -a, --add Env_Name Env_Path\n\t\t\tAdd a new Java environment\n"
+                "  -r, --remove Env_Name\n\t\t\tRemove a Java environment\n"
+                "  -e, --enable Env_Name\n\t\t\tEnable a Java environment\n"
+                "  -d, --disable\t\tDisable all Java environments\n"
+                "  -h, --help\t\tShow this help message\n"
+                "  -v, --version\t\tShow version information\n");
+    arg.addArgument("-l", "--list");
+    arg.addArgument("-a", "--add", 2);
+    arg.addArgument("-r", "--remove", 1);
+    arg.addArgument("-e", "--enable", 1);
+    arg.addArgument("-d", "--disable");
+    arg.addArgument("-h", "--help");
+    arg.addArgument("-v", "--version");
+
+    std::unordered_map<std::string, std::vector<std::string>> args = arg.parseArgs();
+
+    updatePathEnvironmentVariable();
+
+    YAML::Node javaEnvDict;
+    if (!std::filesystem::exists("env.yml")) {
+        std::ofstream file("env.yml");
+        std::cerr << "Warning: No env.yml file found, creating a new one." << std::endl;
+    }
+
+    try {
+        javaEnvDict = YAML::LoadFile("env.yml");
+    }
+    catch (YAML::Exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        exit(1);
+    }
+
+    if (args.find("list") != args.end())
+        listEnv(javaEnvDict);
+
+    if (args.find("add") != args.end())
+        addEnv(javaEnvDict, args["add"][0], args["add"][1]);
+
+    if (args.find("remove") != args.end())
+        removeEnv(javaEnvDict, args["remove"][0]);
+
+    if (args.find("enable") != args.end())
+        enableEnv(javaEnvDict, args["enable"][0]);
+
+    if (args.find("disable") != args.end())
+        disableEnv();
+
+    if (args.find("help") != args.end())
+        arg.help();
+
+    if (args.find("version") != args.end())
+        std::cout << "MJE core version " << VERSION << std::endl;
+
+    std::ofstream file("env.yml");
+
+    try{
+        file << javaEnvDict;
+    }
+    catch (YAML::Exception &e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        exit(1);
+    }
+
     return 0;
 }

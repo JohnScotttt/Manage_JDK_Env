@@ -29,9 +29,9 @@ public:
     void help();
 
     void addArgument(const char *nameFlag, bool isRequired = false);
-    void addArgument(const char *nameFlag, int nargs = 1, bool isRequired = false);
+    void addArgument(const char *nameFlag, int nargs, bool isRequired = false);
     void addArgument(const char *shortName, const char *longName, bool isRequired = false);
-    void addArgument(const char *shortName, const char *longName, int nargs = 1, bool isRequired = false);
+    void addArgument(const char *shortName, const char *longName, int nargs, bool isRequired = false);
 
     std::unordered_map<std::string, std::vector<std::string>> parseArgs();
 
