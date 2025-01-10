@@ -9,5 +9,6 @@ add_executable(MJE main.cpp
         argparse.hpp
         argparse.cpp
         manage.cpp
+        logo.rc
 )
 target_link_libraries(MJE PRIVATE yaml-cpp::yaml-cpp)
