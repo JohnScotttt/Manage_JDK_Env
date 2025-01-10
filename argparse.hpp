@@ -1,6 +1,8 @@
 //
 // Created by JohnScotttt on 2025/01/07.
+// Version 1.1
 //
+
 #ifndef ARGPARSE_HPP
 #define ARGPARSE_HPP
 
@@ -16,6 +18,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
+struct ArgBlock {
+    std::unordered_map<std::string, std::vector<std::string>> args;
+    std::vector<std::string> order;
+};
+
 class ArgParse {
 private:
     int argc;
@@ -24,6 +31,7 @@ private:
     std::unordered_set<std::string> requiredArgs;
     std::unordered_map<std::string, int> argList;
     std::unordered_map<std::string, std::string> nameMap;
+
 public:
     void setHelp(const std::string& helpInfo);
     void help();
@@ -32,8 +40,7 @@ public:
     void addArgument(const char *nameFlag, int nargs, bool isRequired = false);
     void addArgument(const char *shortName, const char *longName, bool isRequired = false);
     void addArgument(const char *shortName, const char *longName, int nargs, bool isRequired = false);
-
-    std::unordered_map<std::string, std::vector<std::string>> parseArgs();
+    ArgBlock parseArgs();
 
     ArgParse(int argc, char **argv) {
         this->argc = argc;

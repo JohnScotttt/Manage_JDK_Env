@@ -1,5 +1,6 @@
 //
 // Created by JohnScotttt on 2025/01/08.
+// Version 1.1
 //
 
 #include "argparse.hpp"
@@ -55,8 +56,8 @@ void ArgParse::addArgument(const char *shortName, const char *longName, int narg
         requiredArgs.insert(lName);
 }
 
-std::unordered_map<std::string, std::vector<std::string>> ArgParse::parseArgs() {
-    std::unordered_map<std::string, std::vector<std::string>> args;
+ArgBlock ArgParse::parseArgs() {
+    ArgBlock argBlock;
 
     if (argc == 1) {
         std::cerr << "Error: No arguments provided." << std::endl;
@@ -80,7 +81,8 @@ std::unordered_map<std::string, std::vector<std::string>> ArgParse::parseArgs() 
                 std::vector<std::string> values;
 
                 if (argList[name] == 0) {
-                    args[name] = std::vector<std::string>{"true"};
+                    argBlock.args[name] = std::vector<std::string>{"true"};
+                    argBlock.order.emplace_back(name);
                     i++;
                     continue;
                 }
@@ -95,7 +97,8 @@ std::unordered_map<std::string, std::vector<std::string>> ArgParse::parseArgs() 
                     }
                 }
 
-                args[name] = values;
+                argBlock.args[name] = values;
+                argBlock.order.emplace_back(name);
                 i += argList[name] + 1;
             } else {
                 std::cerr << "Error: Invalid argument: " << arg << std::endl;
@@ -118,5 +121,5 @@ std::unordered_map<std::string, std::vector<std::string>> ArgParse::parseArgs() 
         exit(1);
     }
 
-    return args;
+    return argBlock;
 }

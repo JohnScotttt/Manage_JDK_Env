@@ -1,6 +1,6 @@
 //
-// Created by JohnScotttt on 2025/1/9.
-// Version 1.0.CPP
+// Created by JohnScotttt on 2025/01/09.
+// Version 1.1.CPP
 //
 
 #include <iostream>
@@ -11,7 +11,7 @@
 #include <yaml-cpp/yaml.h>
 #include "argparse.hpp"
 
-#define VERSION "1.0.CPP"
+#define VERSION "1.1.CPP"
 
 void updatePathEnvironmentVariable();
 void listEnv(const YAML::Node& envDict);
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
     arg.addArgument("-h", "--help");
     arg.addArgument("-v", "--version");
 
-    std::unordered_map<std::string, std::vector<std::string>> args = arg.parseArgs();
+    ArgBlock args = arg.parseArgs();
 
     updatePathEnvironmentVariable();
 
@@ -58,26 +58,22 @@ int main(int argc, char **argv) {
         exit(1);
     }
 
-    if (args.find("list") != args.end())
-        listEnv(javaEnvDict);
-
-    if (args.find("add") != args.end())
-        addEnv(javaEnvDict, args["add"][0], args["add"][1]);
-
-    if (args.find("remove") != args.end())
-        removeEnv(javaEnvDict, args["remove"][0]);
-
-    if (args.find("enable") != args.end())
-        enableEnv(javaEnvDict, args["enable"][0]);
-
-    if (args.find("disable") != args.end())
-        disableEnv();
-
-    if (args.find("help") != args.end())
-        arg.help();
-
-    if (args.find("version") != args.end())
-        std::cout << "MJE core version " << VERSION << std::endl;
+    for (const std::string& name:args.order) {
+        if (name == "list")
+            listEnv(javaEnvDict);
+        else if (name == "add")
+            addEnv(javaEnvDict, args.args["add"][0], args.args["add"][1]);
+        else if (name == "remove")
+            removeEnv(javaEnvDict, args.args["remove"][0]);
+        else if (name == "enable")
+            enableEnv(javaEnvDict, args.args["enable"][0]);
+        else if (name == "disable")
+            disableEnv();
+        else if (name == "help")
+            arg.help();
+        else if (name == "version")
+            std::cout << "MJE core version " << VERSION << std::endl;
+    }
 
     std::ofstream file("env.yml");
 
