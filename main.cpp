@@ -1,6 +1,6 @@
 //
 // Created by JohnScotttt on 2025/01/09.
-// Version 1.1.CPP
+// Version 1.2.CPP
 //
 
 #include <iostream>
@@ -11,16 +11,17 @@
 #include <yaml-cpp/yaml.h>
 #include "argparse.hpp"
 
-#define VERSION "1.1.CPP"
+#define VERSION "1.2.CPP"
 
 void updatePathEnvironmentVariable();
-void listEnv(const YAML::Node& envDict);
-void addEnv(YAML::Node& envDict, const std::string& envName, const std::string& envPath);
-void removeEnv(YAML::Node& envDict, const std::string& envName);
-void enableEnv(const YAML::Node& envDict, const std::string& envName);
+void listEnv(const YAML::Node &envDict);
+void addEnv(YAML::Node &envDict, const std::string &envName, const std::string &envPath);
+void removeEnv(YAML::Node &envDict, const std::string &envName);
+void enableEnv(const YAML::Node &envDict, const std::string &envName);
 void disableEnv();
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     ArgParse arg(argc, argv);
     arg.setHelp("Manage JDK environment\n"
                 "Usage: MJE.exe [options]\n"
@@ -45,20 +46,24 @@ int main(int argc, char **argv) {
     updatePathEnvironmentVariable();
 
     YAML::Node javaEnvDict;
-    if (!std::filesystem::exists("env.yml")) {
+    if (!std::filesystem::exists("env.yml"))
+    {
         std::ofstream file("env.yml");
         std::cerr << "Warning: No env.yml file found, creating a new one." << std::endl;
     }
 
-    try {
+    try
+    {
         javaEnvDict = YAML::LoadFile("env.yml");
     }
-    catch (YAML::Exception &e) {
+    catch (YAML::Exception &e)
+    {
         std::cerr << "Error: " << e.what() << std::endl;
         exit(1);
     }
 
-    for (const std::string& name:args.order) {
+    for (const std::string &name : args.order)
+    {
         if (name == "list")
             listEnv(javaEnvDict);
         else if (name == "add")
@@ -75,12 +80,20 @@ int main(int argc, char **argv) {
             std::cout << "MJE core version " << VERSION << std::endl;
     }
 
-    std::ofstream file("env.yml");
+    YAML::Emitter out;
+    out.SetIndent(2);
+    out.SetMapFormat(YAML::Block);
+    out.SetSeqFormat(YAML::Block);
+    out << javaEnvDict;
 
-    try{
-        file << javaEnvDict;
+    try
+    {
+        std::ofstream file("env.yml");
+        file << out.c_str();
+        file.close();
     }
-    catch (YAML::Exception &e) {
+    catch (std::exception &e)
+    {
         std::cerr << "Error: " << e.what() << std::endl;
         exit(1);
     }
